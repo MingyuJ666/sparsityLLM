@@ -59,18 +59,5 @@ Each plot shows:
 - 🔴 **Red bars**: Conflicting scenarios
 - 🔵 **Blue bars**: Non-conflicting scenarios
 
-## Requirements
 
-```bash
-pip install torch transformers numpy matplotlib
-```
-
-## Expected Results
-
-Typically, knowledge-conflicting scenarios show:
-- Higher sparsity (lower L1 norm)
-- More concentrated activations (higher Top-K energy)
-- Lower effective rank (less diverse representations)
-
-This suggests the model uses different representational strategies when dealing with conflicting information.
 
