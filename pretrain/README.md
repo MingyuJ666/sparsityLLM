@@ -13,9 +13,6 @@ This module builds a synthetic knowledge-graph environment, trains a small Llama
 
 ```bash
 cd pretrain
-conda create -n kg-pretrain python=3.10 -y
-conda activate kg-pretrain
-pip install -r requirements.txt   # torch, transformers, datasets, networkx, matplotlib, numpy
 
 python pretrain.py \
   --llm_size llama-32-32 \
@@ -37,8 +34,7 @@ python pretrain.py \
 ## Tips
 
 - Adjust `n`, `n_rules`, or `deductible_ratio` inside `LatentRuleGraph` to control graph size/difficulty.
-- `TrainDataset` samples triples uniformly at random; increase `num_of_sequences` or `seq_length` for longer contexts.
-- `EvalDataset` mixes options by negative sampling. `is_correct`/accuracy is computed via cross-entropy ranking.
+
 
 Check `pretrain.py` for additional arguments and customization hooks.
 
