@@ -1,6 +1,7 @@
 # Synthetic KG Pretraining
 
-This module builds a synthetic knowledge-graph environment, trains a small Llama-like model from scratch, and evaluates recall/generalization across difficulty splits.
+This module builds a synthetic knowledge-graph environment, trains a small Llama-like model from scratch, and evaluates recall/generalization across difficulty splits. 
+We follow the code created by **Do Larger Language Models Generalize Better? A Scaling Law for Implicit Reasoning at Pretraining Time** and **Are Transformers Able to Reason by Connecting Separated Knowledge in Training Data?**
 
 ## Key Components
 
@@ -38,3 +39,18 @@ python pretrain.py \
 
 Check `pretrain.py` for additional arguments and customization hooks.
 
+## Cite
+```
+@inproceedings{yintransformers,
+  title={Are Transformers Able to Reason by Connecting Separated Knowledge in Training Data?},
+  author={Yin, Yutong and Wang, Zhaoran},
+  booktitle={The Thirteenth International Conference on Learning Representations}
+}
+
+@article{wang2025larger,
+  title={Do larger language models imply better reasoning? a pretraining scaling law for reasoning},
+  author={Wang, Xinyi and Tan, Shawn and Jin, Mingyu and Wang, William Yang and Panda, Rameswar and Shen, Yikang},
+  journal={arXiv preprint arXiv:2504.03635},
+  year={2025}
+}
+```
