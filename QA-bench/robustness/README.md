@@ -1,7 +1,9 @@
 # Robustness Benchmark (MMLU-Pro)
 
-This folder contains one entry point: `analyze_mmlu_pro_area_difficulty.py`.  
-It evaluates how sparsity metrics change across academic areas and adversarial noise levels on the MMLU-Pro dataset.
+This folder contains two entry points:
+
+1. `analyze_mmlu_pro_area_difficulty.py`: evaluate sparsity/accuracy across academic areas and adversarial noise levels on MMLU-Pro.
+2. `build_mmlu_robust_dataset.py`: export the noise-augmented prompts as a JSON dataset (full areas/samples by default).
 
 ## Prerequisites
 
@@ -22,21 +24,20 @@ python analyze_mmlu_pro_area_difficulty.py \
   --hf_token $HUGGING_FACE_HUB_TOKEN
 ```
 
-Important flags:
+Key flags:
 
 - `--use_cot`: enable chain-of-thought prompting (default off).
-- `--num_samples`: limit samples per academic area.
+- `--num_samples`: limit samples per academic area (default 20 in analyzer, “all” in dataset builder).
 - `--gpu_id`: choose the CUDA device.
 
 ## Outputs
 
-- Console table summarizing sparsity metrics per noise level.
-- Combined heatmaps saved as `combined_heatmaps_<model>.pdf` (and `cot_...` if CoT is enabled).
-- Optional JSON statistics (enable inside the script if needed).
+- Analyzer: console summary per noise level + `combined_heatmaps_<model>.pdf` (and `cot_...`).
+- Dataset builder: `mmlu_robust_dataset.json`, containing normal/light/heavy prompts and expanded options.
 
 ## Tips
 
 - If you run out of memory, reduce `--num_samples` or switch to a smaller model.
 - When accuracy statistics look wrong, ensure `math_equivalence.py` in `../rankmath` is up to date for answer checking.
-- The script prints debug info for the first area—safe to ignore or comment out if too verbose.
+- The analyzer prints debug info for the first area—comment out the logs if too verbose.
 
