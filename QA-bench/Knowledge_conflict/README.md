@@ -4,7 +4,6 @@ This experiment analyzes the sparsity of model hidden states under **knowledge-c
 <div align="center">
  We use the dataset proposed by <b>Resolving Knowledge Conflicts in Large Language Models (COLM 2024)</b>.
   <br><br>
-  <a href="https://arxiv.org/pdf/2310.00935"><img src="https://img.shields.io/badge/Paper-arXiv-orange"></a>
 </div>
 ## Overview
 
@@ -64,15 +63,6 @@ Each plot shows:
 - 🔵 **Blue bars**: Non-conflicting scenarios
 ### Citing the dataset
 
-```latex
-@inproceedings{
-wang2024resolving,
-title={Resolving Knowledge Conflicts in Large Language Models},
-author={Yike Wang and Shangbin Feng and Heng Wang and Weijia Shi and Vidhisha Balachandran and Tianxing He and Yulia Tsvetkov},
-booktitle={First Conference on Language Modeling (COLM)},
-year={2024},
-url={https://openreview.net/forum?id=ptvV5HGTNN}
-}
-```
+
 
 
