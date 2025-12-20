@@ -3,7 +3,7 @@
 This folder contains two entry points:
 
 1. `analyze_mmlu_pro_area_difficulty.py`: evaluate sparsity/accuracy across academic areas and adversarial noise levels on MMLU-Pro.
-2. `build_mmlu_robust_dataset.py`: export the noise-augmented MMLU-Robust as a JSON dataset (full areas/samples by default).
+2. `build_mmlu_robust_dataset.py`: create the noise-augmented MMLU-Robust as a JSON dataset (full areas/samples by default).
 
 
 ```
@@ -17,7 +17,9 @@ python analyze_mmlu_pro_area_difficulty.py \
   --num_samples 30 \
   --hf_token $HUGGING_FACE_HUB_TOKEN
 ```
-
+```bash
+python build_mmlu_robust_dataset.py
+```
 Key flags:
 
 - `--use_cot`: enable chain-of-thought prompting (default off).
