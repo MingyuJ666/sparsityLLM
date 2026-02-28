@@ -8,13 +8,12 @@ This repository investigates the relationship between **hidden state sparsity** 
 |--------|---------|
 | `pretrain/` | Synthetic knowledge graph pretraining to study ID vs OOD sparsity |
 | `cot/` | Chain-of-thought prompting with sparsity-based curriculum learning |
-| `QA-bench/` | QA benchmarks analyzing sparsity across various robustness axes |
-| `SFT/` | Supervised fine-tuning toy experiments |
+| `QA-bench/` | QA benchmarks analyzing sparsity across various domians |
+
 
 ## Key Findings
 
 - **Sparsity as Uncertainty Signal**: Hidden state sparsity (L1 norm, effective rank, top-k energy) correlates with task difficulty
-- **OOD Detection**: Models exhibit different sparsity patterns on in-distribution vs out-of-distribution samples
 - **Curriculum Learning**: Ordering examples by sparsity improves few-shot learning performance
 
 ## Project Structure
@@ -54,7 +53,7 @@ entrainment/
 
 ```bash
 conda env create -f environment.yml
-conda activate dpo
+conda activate sparsity
 ```
 
 ### Option 2: Pip
@@ -63,14 +62,6 @@ conda activate dpo
 pip install -r requirements.txt
 ```
 
-### Core Dependencies
-
-- Python 3.10+
-- PyTorch 2.0+ (with CUDA support)
-- Transformers
-- vLLM (for inference)
-- NetworkX (for graph generation)
-- Matplotlib, NumPy, SciPy
 
 ## Quick Start
 
@@ -88,7 +79,7 @@ python pretrain.py \
 ```
 
 This generates:
-- Synthetic knowledge graph with deductible rules
+- Synthetic knowledge graph with deductive rules
 - ID test set (training memory)
 - OOD test sets (requires multi-hop reasoning)
 - Sparsity comparison across difficulty levels
@@ -139,88 +130,6 @@ We measure hidden state sparsity using multiple metrics:
 | **Top-k% Energy** | $\frac{\sum_{i \in \text{top-k}} h_i^2}{\sum_i h_i^2}$ | Energy concentration |
 | **Effective Rank** | $\exp(-\sum_i p_i \log p_i) / d$ | Dimensionality utilization |
 
-## Module Details
-
-### pretrain/
-
-Generates synthetic knowledge graphs with latent logical rules and trains small LLaMA models from scratch.
-
-**Key Features:**
-- Rule-based knowledge graph generation
-- ID/OOD split based on deductibility
-- Sparsity measurement on last hidden layer
-- Three difficulty levels: Easy (ID), Medium (long inference), Hard (short inference)
-
-**Usage:**
-```bash
-python pretrain.py --llm_size llama-32-32 --steps 5000
-```
-
-### cot/
-
-Implements various prompting strategies for MATH-500 with sparsity-aware curriculum learning.
-
-**Key Features:**
-- Multiple prompting strategies (CoT, few-shot, curriculum, auto-shot)
-- Sparsity-based difficulty estimation
-- Curriculum learning: select examples from easy→hard
-- vLLM for efficient batch inference
-
-**Usage:**
-```bash
-python cot.py --use_cot curriculum --rank_metric l0_norm
-```
-
-### QA-bench/
-
-Collection of QA analysis scripts across different robustness dimensions.
-
-| Subfolder | Dataset | Analysis |
-|-----------|---------|----------|
-| `Longreason/` | LongReason | Long-context sparsity patterns |
-| `robustness/` | MMLU-Pro | Adversarial noise robustness |
-| `rankmath/` | MATH-500 | Difficulty vs sparsity correlation |
-| `Knowledge_conflict/` | Custom | Conflicting knowledge detection |
-
-### SFT/
-
-Toy experiments verifying theoretical predictions about sparsity and cross-entropy loss.
-
-## Configuration
-
-### Environment Variables
-
-```bash
-export CUDA_VISIBLE_DEVICES=0
-export HUGGING_FACE_HUB_TOKEN="hf_xxx"
-```
-
-### Common Arguments
-
-| Argument | Description | Default |
-|----------|-------------|---------|
-| `--gpu_id` | GPU device ID | 0 |
-| `--model_path` | HuggingFace model path | Qwen/Qwen2.5-7B-Instruct |
-| `--seed` | Random seed | 42 |
-| `--rank_metric` | Sparsity metric | l0_norm |
-
-## Known Issues
-
-### pretrain/pretrain.py
-
-1. **Line 252**: Variable `r`, `t` used before assignment
-   ```python
-   # Bug: r, t not defined before while loop
-   while (r, t) in chosen_edges:
-   ```
-
-2. **Line 707-712**: Padding logic doesn't update list
-   ```python
-   # Bug: _ids reassigned but not put back in ids list
-   _ids = [self.pad_token_id] * (max_length - len(_ids)) + _ids
-   ```
-
-3. **Line 1000**: References non-existent attribute `test_rules`
 
 
 ## Contact
