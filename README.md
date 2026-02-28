@@ -1,1 +1,228 @@
-# sparsityLLM
+# Entrainment: Hidden State Sparsity Analysis for LLMs
+
+This repository investigates the relationship between **hidden state sparsity** and model behavior in Large Language Models (LLMs). We study how sparsity patterns correlate with task difficulty, reasoning depth, and out-of-distribution (OOD) generalization.
+
+## Overview
+
+| Module | Purpose |
+|--------|---------|
+| `pretrain/` | Synthetic knowledge graph pretraining to study ID vs OOD sparsity |
+| `cot/` | Chain-of-thought prompting with sparsity-based curriculum learning |
+| `QA-bench/` | QA benchmarks analyzing sparsity across various robustness axes |
+| `SFT/` | Supervised fine-tuning toy experiments |
+
+## Key Findings
+
+- **Sparsity as Uncertainty Signal**: Hidden state sparsity (L1 norm, effective rank, top-k energy) correlates with task difficulty
+- **OOD Detection**: Models exhibit different sparsity patterns on in-distribution vs out-of-distribution samples
+- **Curriculum Learning**: Ordering examples by sparsity improves few-shot learning performance
+
+## Project Structure
+
+```
+entrainment/
+├── pretrain/                    # Synthetic KG pretraining
+│   ├── pretrain.py              # Main training script
+│   └── llama-*/                 # Saved model checkpoints
+│
+├── cot/                         # Chain-of-Thought experiments
+│   ├── cot.py                   # Main CoT inference script
+│   ├── math_equivalence.py      # Answer matching utilities
+│   ├── dataset/                 # Math-500 dataset
+│   ├── math_utils/              # Math parsing utilities
+│   └── utils/
+│       ├── rank.py              # Sparsity-based ranking
+│       └── retrieve_similar_examples.py
+│
+├── QA-bench/                    # QA benchmark analysis
+│   ├── Longreason/              # Long-context reasoning
+│   ├── robustness/              # MMLU-Pro adversarial noise
+│   ├── rankmath/                # MATH-500 difficulty analysis
+│   └── Knowledge_conflict/      # Knowledge conflict detection
+│
+├── SFT/                         # Supervised fine-tuning
+│   └── toy_example_ce.py        # Multi-class CE toy verification
+│
+├── environment.yml              # Conda environment
+├── requirements.txt             # Pip dependencies
+└── draw.ipynb                   # Visualization notebook
+```
+
+## Installation
+
+### Option 1: Conda (Recommended)
+
+```bash
+conda env create -f environment.yml
+conda activate dpo
+```
+
+### Option 2: Pip
+
+```bash
+pip install -r requirements.txt
+```
+
+### Core Dependencies
+
+- Python 3.10+
+- PyTorch 2.0+ (with CUDA support)
+- Transformers
+- vLLM (for inference)
+- NetworkX (for graph generation)
+- Matplotlib, NumPy, SciPy
+
+## Quick Start
+
+### 1. Pretrain: Synthetic Knowledge Graph Experiments
+
+Train a small LLaMA model on synthetic knowledge graphs with latent rules:
+
+```bash
+cd pretrain
+python pretrain.py \
+    --llm_size llama-32-32 \
+    --gpu_id 0 \
+    --steps 1000 \
+    --seed 42
+```
+
+This generates:
+- Synthetic knowledge graph with deductible rules
+- ID test set (training memory)
+- OOD test sets (requires multi-hop reasoning)
+- Sparsity comparison across difficulty levels
+
+### 2. CoT: Curriculum Learning on MATH-500
+
+Run chain-of-thought inference with sparsity-based curriculum:
+
+```bash
+cd cot
+python cot.py \
+    --model_path Qwen/Qwen2.5-7B-Instruct \
+    --gpu_id 0 \
+    --use_cot curriculum \
+    --rank_metric l0_norm \
+    --n_levels 5
+```
+
+Prompting strategies:
+- `cot`: Zero-shot chain-of-thought
+- `few-shot`: Random few-shot examples
+- `curriculum`: Sparsity-ranked examples (easy→hard)
+- `auto-shot`: Semantic similarity retrieval
+
+### 3. QA-Bench: Robustness Analysis
+
+```bash
+cd QA-bench
+
+# Long-context reasoning sparsity
+python Longreason/analyze_length_sparsity.py
+
+# MATH-500 accuracy vs sparsity
+python rankmath/accuracy_vs_sparsity.py
+
+# MMLU-Pro adversarial robustness
+python robustness/analyze_mmlu_pro_area_difficulty.py
+```
+
+## Sparsity Metrics
+
+We measure hidden state sparsity using multiple metrics:
+
+| Metric | Formula | Interpretation |
+|--------|---------|----------------|
+| **L1 Norm** | $\sum_i \|h_i\|$ | Total activation magnitude |
+| **L0 Norm** | $\sum_i \mathbb{1}[h_i \neq 0]$ | Number of active dimensions |
+| **Top-k% Energy** | $\frac{\sum_{i \in \text{top-k}} h_i^2}{\sum_i h_i^2}$ | Energy concentration |
+| **Effective Rank** | $\exp(-\sum_i p_i \log p_i) / d$ | Dimensionality utilization |
+
+## Module Details
+
+### pretrain/
+
+Generates synthetic knowledge graphs with latent logical rules and trains small LLaMA models from scratch.
+
+**Key Features:**
+- Rule-based knowledge graph generation
+- ID/OOD split based on deductibility
+- Sparsity measurement on last hidden layer
+- Three difficulty levels: Easy (ID), Medium (long inference), Hard (short inference)
+
+**Usage:**
+```bash
+python pretrain.py --llm_size llama-32-32 --steps 5000
+```
+
+### cot/
+
+Implements various prompting strategies for MATH-500 with sparsity-aware curriculum learning.
+
+**Key Features:**
+- Multiple prompting strategies (CoT, few-shot, curriculum, auto-shot)
+- Sparsity-based difficulty estimation
+- Curriculum learning: select examples from easy→hard
+- vLLM for efficient batch inference
+
+**Usage:**
+```bash
+python cot.py --use_cot curriculum --rank_metric l0_norm
+```
+
+### QA-bench/
+
+Collection of QA analysis scripts across different robustness dimensions.
+
+| Subfolder | Dataset | Analysis |
+|-----------|---------|----------|
+| `Longreason/` | LongReason | Long-context sparsity patterns |
+| `robustness/` | MMLU-Pro | Adversarial noise robustness |
+| `rankmath/` | MATH-500 | Difficulty vs sparsity correlation |
+| `Knowledge_conflict/` | Custom | Conflicting knowledge detection |
+
+### SFT/
+
+Toy experiments verifying theoretical predictions about sparsity and cross-entropy loss.
+
+## Configuration
+
+### Environment Variables
+
+```bash
+export CUDA_VISIBLE_DEVICES=0
+export HUGGING_FACE_HUB_TOKEN="hf_xxx"
+```
+
+### Common Arguments
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--gpu_id` | GPU device ID | 0 |
+| `--model_path` | HuggingFace model path | Qwen/Qwen2.5-7B-Instruct |
+| `--seed` | Random seed | 42 |
+| `--rank_metric` | Sparsity metric | l0_norm |
+
+## Known Issues
+
+### pretrain/pretrain.py
+
+1. **Line 252**: Variable `r`, `t` used before assignment
+   ```python
+   # Bug: r, t not defined before while loop
+   while (r, t) in chosen_edges:
+   ```
+
+2. **Line 707-712**: Padding logic doesn't update list
+   ```python
+   # Bug: _ids reassigned but not put back in ids list
+   _ids = [self.pad_token_id] * (max_length - len(_ids)) + _ids
+   ```
+
+3. **Line 1000**: References non-existent attribute `test_rules`
+
+
+## Contact
+
+For questions or issues, please open a GitHub issue.
