@@ -27,7 +27,7 @@ python pretrain.py \
 - `--seed` fixes the KG generation as well as model initialization.
 
 ## Outputs
-
+- Use lama-32-32 or lama-32-32 to get the best result.
 - Saves the trained checkpoint, HF Trainer logs, and evaluation summaries.
 - Prints accuracy/sparsity for Easy (ID), Medium (OOD-long), Hard (OOD-short) splits.
 - Deletes the output dir at the end (see final section) after reporting parameter counts. Comment out the `os.system("rm -rf ...")` line if you want to keep checkpoints.
