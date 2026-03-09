@@ -84,7 +84,22 @@ This generates:
 - OOD test sets (requires multi-hop reasoning)
 - Sparsity comparison across difficulty levels
 
-### 2. CoT: Curriculum Learning on MATH-500
+### 2. QA-Bench: Sparsity and OOD Analysis
+
+```bash
+cd QA-bench
+
+# Long-context reasoning sparsity
+python Longreason/analyze_length_sparsity.py
+
+# MATH-500 accuracy vs sparsity
+python rankmath/accuracy_vs_sparsity.py
+
+# MMLU-Pro adversarial robustness
+python robustness/analyze_mmlu_pro_area_difficulty.py
+```
+
+### 3. CoT: Curriculum Learning on MATH-500
 
 Run chain-of-thought inference with sparsity-based curriculum:
 
@@ -104,20 +119,7 @@ Prompting strategies:
 - `curriculum`: Sparsity-ranked examples (easy→hard)
 - `auto-shot`: Semantic similarity retrieval
 
-### 3. QA-Bench: Robustness Analysis
 
-```bash
-cd QA-bench
-
-# Long-context reasoning sparsity
-python Longreason/analyze_length_sparsity.py
-
-# MATH-500 accuracy vs sparsity
-python rankmath/accuracy_vs_sparsity.py
-
-# MMLU-Pro adversarial robustness
-python robustness/analyze_mmlu_pro_area_difficulty.py
-```
 
 ## Sparsity Metrics
 
