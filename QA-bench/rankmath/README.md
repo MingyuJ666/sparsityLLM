@@ -9,7 +9,7 @@ Scripts you need:
 
 ## How to Run
 
-### 1. Sparsity vs Difficulty
+### 1. Sparsity vs Difficulty in MATH500
 ```bash
 python hard.py \
   --model_name Qwen/Qwen2.5-7B-Instruct \
@@ -17,7 +17,7 @@ python hard.py \
 ```
 Outputs `sparsity_vs_difficulty_model_comparison.pdf`.
 
-### 2. Accuracy vs Sparsity
+### 2. Accuracy vs Sparsity in MATH500
 ```bash
 python accuracy_vs_sparsity.py \
   --model_name Qwen/Qwen2.5-7B-Instruct \
