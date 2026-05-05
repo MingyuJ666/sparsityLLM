@@ -21,7 +21,7 @@ The code compares how language models represent information when:
 ## Sparsity Metrics
 
 The analysis computes and visualizes:
-1. **L1 Norm**: Sum of absolute activation values
+1. **L1 Norm**: Sum of absolute activation values (Maybe this metric can not tell anything)
 2. **Top-5% Energy**: Energy concentration in top 5% neurons
 3. **Top-10% Energy**: Energy concentration in top 10% neurons
 4. **Effective Rank**: Measure of representation diversity
