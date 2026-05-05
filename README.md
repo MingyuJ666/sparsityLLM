@@ -127,8 +127,6 @@ We measure hidden state sparsity using multiple metrics:
 
 | Metric | Formula | Interpretation |
 |--------|---------|----------------|
-| **L1 Norm** | $\sum_i \|h_i\|$ | Total activation magnitude |
-| **L0 Norm** | $\sum_i \mathbb{1}[h_i \neq 0]$ | Number of active dimensions |
 | **Top-k% Energy** | $\frac{\sum_{i \in \text{top-k}} h_i^2}{\sum_i h_i^2}$ | Energy concentration |
 | **Effective Rank** | $\exp(-\sum_i p_i \log p_i) / d$ | Dimensionality utilization |
 
