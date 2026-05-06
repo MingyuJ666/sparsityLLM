@@ -26,11 +26,23 @@ python pretrain.py \
 - `--steps` controls training iterations.
 - `--seed` fixes the KG generation as well as model initialization.
 
-## Outputs
-- Use lama-32-32 or lama-32-32 to get the best result.
-- Saves the trained checkpoint, HF Trainer logs, and evaluation summaries.
-- Prints accuracy/sparsity for Easy (ID), Medium (OOD-long), Hard (OOD-short) splits.
-- Deletes the output dir at the end (see final section) after reporting parameter counts. Comment out the `os.system("rm -rf ...")` line if you want to keep checkpoints.
+
+ ```bash
+# Default: llama-16-16, 5000 steps, eval every 200 steps
+python learning_dynamics.py --steps 5000 --eval_steps 200
+# Larger model
+python learning_dynamics.py --llm_size llama-32-32 --steps 5000 --eval_steps 200
+# Custom GPU and seed
+python learning_dynamics.py --gpu_id 1 --seed 42 --steps 5000
+ ```
+
+Results are saved to `--output_dir`:
+ - `dynamics_{model}_{steps}steps.json` - Per-step metrics including accuracy, loss, top-5%/top-10% energy ratio, L1 norm, and effective rank for each split (ID, OOD-
+     Medium, OOD-Hard).
+- `dynamics_{model}_{steps}steps.pdf` - 4-panel figure: (a) top-5% energy vs step, (b) top-10% energy vs step, (c) accuracy vs step, (d) effective rank vs step. Each
+      panel shows all three splits.
+  
+The key finding is a U-shaped sparsity curve: representations first become sparse during early learning, then densify as accuracy saturates.
 
 ## Tips
 
