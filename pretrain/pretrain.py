@@ -1,8 +1,16 @@
+import os, sys, json, argparse
+
+# Set GPU before torch initializes CUDA
+if __name__ == "__main__":
+    _parser = argparse.ArgumentParser(add_help=False)
+    _parser.add_argument('--gpu_id', type=str, default="7")
+    _args, _ = _parser.parse_known_args()
+    os.environ["CUDA_VISIBLE_DEVICES"] = _args.gpu_id
+
 import networkx as nx
 import numpy as np
 import random
 from collections import defaultdict
-import os, json
 import copy
 import torch
 import transformers
@@ -19,8 +27,6 @@ from transformers import LlamaForCausalLM
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from transformers.cache_utils import Cache
 from typing import List, Optional, Tuple, Union
-import os
-import argparse
 IGNORE_INDEX = -100
 DEFAULT_PAD_TOKEN = "[PAD]"
 DEFAULT_EOS_TOKEN = "</s>"
@@ -378,17 +384,34 @@ def latent_rule_graph(num_rules=50, L_min=2, L_max=4, n=10000, m=10, n_r=200,
 
     # Determine test sets after edge removal
     print("\nDetermining test sets after edge removal...")
-    
-    # Collect all deductible test candidates with their RULE lengths (true inference difficulty)
+
+    def check_rule_works(h, t, rule):
+        """Check if a specific rule can still derive h -> t on the post-removal graph."""
+        head_list = [h]
+        for _r in rule[1:]:
+            next_head_list = []
+            for e_h in head_list:
+                if e_h not in G.nodes:
+                    continue
+                for e_t in G[e_h]:
+                    if _r in G[e_h][e_t]['id']:
+                        next_head_list.append(e_t)
+            head_list = next_head_list
+        return t in head_list
+
+    # Collect deductible test candidates with POST-REMOVAL rule lengths
     test_start_idx = int(num_train * deductible_ratio)
     deductible_candidates = []
-    
+
     for triple in deductible_triples[test_start_idx:]:
-        if check_deductible(triple):
-            if triple in all_deductibles:
-                # Get the minimum rule length for this triple (number of inference steps)
-                # Rule format: (implied_relation, step1, step2, ...) -> length = len(rule) - 1
-                min_rule_len = min([len(rule) - 1 for rule in all_deductibles[triple]])
+        if triple in all_deductibles:
+            h, r, t = triple
+            working_rule_lens = []
+            for rule in all_deductibles[triple]:
+                if check_rule_works(h, t, rule):
+                    working_rule_lens.append(len(rule) - 1)
+            if working_rule_lens:
+                min_rule_len = min(working_rule_lens)
                 deductible_candidates.append((triple, min_rule_len))
     
     print(f"Total deductible candidates: {len(deductible_candidates)}")
@@ -948,7 +971,7 @@ def train(train_dataset, model_name_or_path='llama-2-2', random_initialize=True,
                       weight_decay=0.0, warmup_ratio=0.2, lr_scheduler_type="cosine",
                       logging_steps=1, output_dir=output_dir, report_to="none")
 
-    trainer = Trainer(model=model, tokenizer=tokenizer, args=train_args,
+    trainer = Trainer(model=model, processing_class=tokenizer, args=train_args,
                     train_dataset=train_dataset, data_collator=data_collator,
                     eval_dataset=None)
 
@@ -1247,13 +1270,12 @@ def eval_simple(eval_dataset, model, tokenizer, batch_size=16, max_length=64,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--llm_size', type=str, default='llama-32-32', help='LLM size, e.g., llama-2-2, llama-32-32')
-    parser.add_argument('--gpu_id', type=str, default="1", help='GPU ID to use, e.g., "0" or "0,1,2,3"')
-    parser.add_argument('--steps', type=int, default=1, help='Training steps')
+    parser.add_argument('--gpu_id', type=str, default="7", help='GPU ID to use, e.g., "0" or "0,1,2,3"')
+    parser.add_argument('--steps', type=int, default=2500, help='Training steps')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for KG generation')
     args = parser.parse_args()
     
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
-    
+    print(f"Using GPU: {os.environ.get('CUDA_VISIBLE_DEVICES', 'default')}")
     print(f"Using random seed: {args.seed} for KG generation")
 
     graph = LatentRuleGraph(
