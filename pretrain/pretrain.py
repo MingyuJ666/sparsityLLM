@@ -19,7 +19,6 @@ import itertools
 from transformers import Trainer, TrainingArguments
 from torch.utils.data import IterableDataset, get_worker_info, Dataset
 from typing import Dict, Optional, Sequence
-from sklearn.utils import shuffle
 from dataclasses import dataclass
 import torch.nn.functional as F
 from torch.nn import CrossEntropyLoss
@@ -908,13 +907,22 @@ def prepare_data(
 ) -> Dict:
     """Preprocess the data by tokenizing."""
     examples = [s + t for s, t in zip(sources, targets)]
-    examples_tokenized, sources_tokenized = [_tokenize_fn(strings, tokenizer, max_length)
-                                             for strings in (examples, sources)]
+    # NOTE: CharTokenizer is NOT concatenative — tokenize(source)+tokenize(target)
+    # != tokenize(source+target) because of the trailing ' '/'\n' stripping in
+    # CharTokenizer.tokenize (ids[:-2]). Using len(tokenize(source)) to locate the
+    # answer therefore leaves the separator space between the question and the
+    # answer un-masked, contaminating both the CE loss and the last-hidden-state
+    # sparsity metrics. Anchor on the answer length from the END of the sequence
+    # instead: the last len(tokenize(target)) tokens of `example` are exactly the
+    # answer characters (char-level tokenization makes this exact).
+    examples_tokenized, targets_tokenized = [_tokenize_fn(strings, tokenizer, max_length)
+                                             for strings in (examples, targets)]
     eos = torch.tensor([tokenizer.eos_token_id])
     input_ids = [torch.cat((ids, eos)) for ids in examples_tokenized["input_ids"]]
     labels = copy.deepcopy(input_ids)
-    for label, source_len in zip(labels, sources_tokenized["input_ids_lens"]):
-        label[:source_len] = IGNORE_INDEX
+    for label, target_len in zip(labels, targets_tokenized["input_ids_lens"]):
+        # keep only the answer tokens (+ the trailing EOS); mask everything before
+        label[:-(target_len + 1)] = IGNORE_INDEX
     return dict(input_ids=input_ids, labels=labels)
 
 
@@ -1187,8 +1195,22 @@ def eval_simple(eval_dataset, model, tokenizer, batch_size=16, max_length=64,
 
         if compute_sparsity:
             last_h = outputs.hidden_states[-1][:, :-1, :]
-            metrics_dict = compute_sparsity_metrics(last_h, mask)
-            
+            # Sparsity is measured on the PROMPT representation only. Under causal
+            # attention, the hidden state at the position that predicts the FIRST
+            # answer token is exactly the model's state right after reading the whole
+            # question — the option text hasn't entered the context yet, so this
+            # vector is IDENTICAL across all num_choices options of a question.
+            # Averaging over all 10 options' answer tokens (as before) just repeats
+            # this vector 10x and mixes in random negative-entity tokens as noise.
+            # Take it once per question: the first option row of each block, at its
+            # first answer position.
+            prompt_mask = torch.zeros_like(mask)
+            for i in range(0, mask.size(0), num_choices):
+                ans_pos = torch.nonzero(mask[i], as_tuple=True)[0]
+                if len(ans_pos) > 0:
+                    prompt_mask[i, ans_pos[0]] = True
+            metrics_dict = compute_sparsity_metrics(last_h, prompt_mask)
+
             if metrics_dict:
                 for key in ['l1_norm', 'top5pct_energy', 'top10pct_energy', 'effective_rank']:
                     value, M = metrics_dict[key]
