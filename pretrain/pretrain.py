@@ -1127,19 +1127,15 @@ def eval_simple(eval_dataset, model, tokenizer, batch_size=16, max_length=64,
         h = vh.detach().cpu().float().numpy()
         
         metrics_list = {
-            'l1_norm': [],
             'top5pct_energy': [],
             'top10pct_energy': [],
             'effective_rank': []
         }
-        
+
         for i in range(h.shape[0]):
             sample_h = h[i]
             abs_h = np.abs(sample_h)
-            
-            # L1 Norm: sum of absolute values
-            l1_norm = abs_h.sum()
-            
+
             sorted_abs = np.sort(abs_h)[::-1]
             total_energy = (sorted_abs ** 2).sum()
             
@@ -1154,7 +1150,6 @@ def eval_simple(eval_dataset, model, tokenizer, batch_size=16, max_length=64,
             entropy = -(normalized * np.log(normalized + 1e-10)).sum()
             effective_rank = np.exp(entropy) / len(sample_h)
             
-            metrics_list['l1_norm'].append(l1_norm)
             metrics_list['top5pct_energy'].append(top5pct_energy)
             metrics_list['top10pct_energy'].append(top10pct_energy)
             metrics_list['effective_rank'].append(effective_rank)
@@ -1163,7 +1158,6 @@ def eval_simple(eval_dataset, model, tokenizer, batch_size=16, max_length=64,
         return avg_metrics
 
     sparsity_accum = {
-        'l1_norm_sum': 0.0,
         'top5pct_energy_sum': 0.0,
         'top10pct_energy_sum': 0.0,
         'effective_rank_sum': 0.0,
@@ -1212,7 +1206,7 @@ def eval_simple(eval_dataset, model, tokenizer, batch_size=16, max_length=64,
             metrics_dict = compute_sparsity_metrics(last_h, prompt_mask)
 
             if metrics_dict:
-                for key in ['l1_norm', 'top5pct_energy', 'top10pct_energy', 'effective_rank']:
+                for key in ['top5pct_energy', 'top10pct_energy', 'effective_rank']:
                     value, M = metrics_dict[key]
                     sparsity_accum[f'{key}_sum'] += value * M
                 sparsity_accum['count'] += M
@@ -1248,7 +1242,6 @@ def eval_simple(eval_dataset, model, tokenizer, batch_size=16, max_length=64,
                 cnt = sparsity_accum["count"]
                 msg += (
                     f"\n    [Sparsity] "
-                    f"L1: {sparsity_accum['l1_norm_sum']/cnt:.2f}, "
                     f"Top5%: {sparsity_accum['top5pct_energy_sum']/cnt:.4f}, "
                     f"Top10%: {sparsity_accum['top10pct_energy_sum']/cnt:.4f}, "
                     f"EffRank: {sparsity_accum['effective_rank_sum']/cnt:.4f}"
@@ -1280,7 +1273,6 @@ def eval_simple(eval_dataset, model, tokenizer, batch_size=16, max_length=64,
     if compute_sparsity and sparsity_accum["count"] > 0:
         cnt = sparsity_accum["count"]
         sparsity_metrics = {
-            "l1_norm": sparsity_accum["l1_norm_sum"] / cnt,
             "top5pct_energy": sparsity_accum["top5pct_energy_sum"] / cnt,
             "top10pct_energy": sparsity_accum["top10pct_energy_sum"] / cnt,
             "effective_rank": sparsity_accum["effective_rank_sum"] / cnt,
@@ -1295,8 +1287,16 @@ if __name__ == "__main__":
     parser.add_argument('--gpu_id', type=str, default="7", help='GPU ID to use, e.g., "0" or "0,1,2,3"')
     parser.add_argument('--steps', type=int, default=2500, help='Training steps')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for KG generation')
+    parser.add_argument('--num_test', type=int, default=100,
+                        help='Number of test samples per difficulty split for evaluation '
+                             '(default 100). Capped at run time to the OOD-Long ("Medium") pool '
+                             'size, which is the smallest of the three splits, so all three '
+                             'difficulty splits stay equal-sized and clean -- the Medium pool is '
+                             'only a few hundred triples, so a larger request would just dilute '
+                             'and size-imbalance the splits and wash out the difficulty->sparsity '
+                             'trend.')
     args = parser.parse_args()
-    
+
     print(f"Using GPU: {os.environ.get('CUDA_VISIBLE_DEVICES', 'default')}")
     print(f"Using random seed: {args.seed} for KG generation")
 
@@ -1338,16 +1338,27 @@ if __name__ == "__main__":
     eval_dataset_easy = EvalDataset(graph, tokenizer, split="id", num_options=10)
     eval_dataset_medium = EvalDataset(graph, tokenizer, split="ood_medium", num_options=10)
     eval_dataset_hard = EvalDataset(graph, tokenizer, split="ood_hard", num_options=10)
-    
+
+    # The Medium (OOD-Long) split has the smallest candidate pool. Cap num_test to
+    # it so all three splits are evaluated on the SAME number of samples (clean,
+    # equal-sized) instead of blindly using a fixed value that could exceed the pool.
+    medium_size = len(eval_dataset_medium)
+    eval_num_test = min(args.num_test, medium_size)
+    if eval_num_test < args.num_test:
+        print(f"[warn] num_test={args.num_test} exceeds the Medium/OOD-Long pool "
+              f"({medium_size}); capping to {medium_size} to keep the three splits "
+              f"equal-sized and clean.")
+    print(f"Evaluating with num_test={eval_num_test} per split "
+          f"(Medium pool size = {medium_size}).")
+
     print("\n" + "="*80)
     print("Difficulty 1: Easy (ID - Training Set Memory)")
     print("="*80)
-    acc_easy, mean_loss_easy, sp_easy = eval_simple(eval_dataset_easy, model, tokenizer, compute_sparsity=True, device="cuda")
+    acc_easy, mean_loss_easy, sp_easy = eval_simple(eval_dataset_easy, model, tokenizer, num_test=eval_num_test, compute_sparsity=True, device="cuda")
     print(f"Accuracy: {acc_easy:.2%}")
     print(f"Mean Loss: {mean_loss_easy:.4f}")
     if sp_easy:
         print(f"Sparsity Metrics:")
-        print(f"  - L1 Norm: {sp_easy['l1_norm']:.2f}")
         print(f"  - Top5% Energy: {sp_easy['top5pct_energy']:.4f}")
         print(f"  - Top10% Energy: {sp_easy['top10pct_energy']:.4f}")
         print(f"  - Effective Rank: {sp_easy['effective_rank']:.4f}")
@@ -1355,12 +1366,11 @@ if __name__ == "__main__":
     print("\n" + "="*80)
     print("Difficulty 2: Medium (OOD)")
     print("="*80)
-    acc_medium, mean_loss_medium, sp_medium = eval_simple(eval_dataset_medium, model, tokenizer, compute_sparsity=True, device="cuda")
+    acc_medium, mean_loss_medium, sp_medium = eval_simple(eval_dataset_medium, model, tokenizer, num_test=eval_num_test, compute_sparsity=True, device="cuda")
     print(f"Accuracy: {acc_medium:.2%}")
     print(f"Mean Loss: {mean_loss_medium:.4f}")
     if sp_medium:
         print(f"Sparsity Metrics:")
-        print(f"  - L1 Norm: {sp_medium['l1_norm']:.2f}")
         print(f"  - Top5% Energy: {sp_medium['top5pct_energy']:.4f}")
         print(f"  - Top10% Energy: {sp_medium['top10pct_energy']:.4f}")
         print(f"  - Effective Rank: {sp_medium['effective_rank']:.4f}")
@@ -1368,12 +1378,11 @@ if __name__ == "__main__":
     print("\n" + "="*80)
     print("Difficulty 3: Hard (OOD)")
     print("="*80)
-    acc_hard, mean_loss_hard, sp_hard = eval_simple(eval_dataset_hard, model, tokenizer, compute_sparsity=True, device="cuda")
+    acc_hard, mean_loss_hard, sp_hard = eval_simple(eval_dataset_hard, model, tokenizer, num_test=eval_num_test, compute_sparsity=True, device="cuda")
     print(f"Accuracy: {acc_hard:.2%}")
     print(f"Mean Loss: {mean_loss_hard:.4f}")
     if sp_hard:
         print(f"Sparsity Metrics:")
-        print(f"  - L1 Norm: {sp_hard['l1_norm']:.2f}")
         print(f"  - Top5% Energy: {sp_hard['top5pct_energy']:.4f}")
         print(f"  - Top10% Energy: {sp_hard['top10pct_energy']:.4f}")
         print(f"  - Effective Rank: {sp_hard['effective_rank']:.4f}")
@@ -1385,9 +1394,7 @@ if __name__ == "__main__":
     print(f"Accuracy: Easy={acc_easy:.2%}, Medium={acc_medium:.2%}, Hard={acc_hard:.2%}")
     print(f"Accuracy Drop: Easy→Medium={acc_easy-acc_medium:+.2%}, Medium→Hard={acc_medium-acc_hard:+.2%}")
     if sp_easy and sp_medium and sp_hard:
-        print(f"\nSparsity Comparison (L1 Norm):")
-        print(f"  Easy={sp_easy['l1_norm']:.2f}, Medium={sp_medium['l1_norm']:.2f}, Hard={sp_hard['l1_norm']:.2f}")
-        print(f"Sparsity Comparison (Top5% Energy):")
+        print(f"\nSparsity Comparison (Top5% Energy):")
         print(f"  Easy={sp_easy['top5pct_energy']:.4f}, Medium={sp_medium['top5pct_energy']:.4f}, Hard={sp_hard['top5pct_energy']:.4f}")
         print(f"Sparsity Comparison (Top10% Energy):")
         print(f"  Easy={sp_easy['top10pct_energy']:.4f}, Medium={sp_medium['top10pct_energy']:.4f}, Hard={sp_hard['top10pct_energy']:.4f}")

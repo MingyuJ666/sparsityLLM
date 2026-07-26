@@ -75,7 +75,8 @@ python pretrain.py \
     --llm_size llama-32-32 \
     --gpu_id 0 \
     --steps 1000 \
-    --seed 42
+    --seed 42 \
+    --num_test 100
 ```
 
 This generates:
@@ -83,6 +84,15 @@ This generates:
 - ID test set (training memory)
 - OOD test sets (requires multi-hop reasoning)
 - Sparsity comparison across difficulty levels
+
+> **Note on `--num_test`:** default `100`, but it is **automatically capped at
+> run time to the OOD-Long ("Medium") split size**, which is the smallest of the
+> three difficulty pools (typically only a few hundred triples). This keeps all
+> three splits equal-sized and clean. Requesting more test samples does not yield
+> more *clean* ones — it would just dilute and size-imbalance the splits and wash
+> out the difficulty→sparsity trend. To gain statistical power, run **multiple
+> seeds** (each seed builds a fresh graph and a fresh clean split) rather than
+> enlarging `--num_test`.
 
 ### 2. QA-Bench: Sparsity and OOD Analysis
 
