@@ -25,6 +25,7 @@ python pretrain.py \
 - `--llm_size` is parsed as `<family>-<layers>-<heads>` (e.g., `llama-32-32`). Hidden dim is `64 * heads`.
 - `--steps` controls training iterations.
 - `--seed` fixes the KG generation as well as model initialization.
+- `--num_test` (default 100) sets the number of eval samples per difficulty split. It is capped at run time to the OOD-Long ("Medium") pool size — the smallest of the three splits — so all splits stay equal-sized. If you request more than the Medium pool holds, a `[warn]` is printed and the effective value is lowered.
 
 
  ```bash
@@ -37,7 +38,7 @@ python learning_dynamics.py --gpu_id 1 --seed 42 --steps 5000
  ```
 
 Results are saved to `--output_dir`:
- - `dynamics_{model}_{steps}steps.json` - Per-step metrics including accuracy, loss, top-5%/top-10% energy ratio, L1 norm, and effective rank for each split (ID, OOD-
+ - `dynamics_{model}_{steps}steps.json` - Per-step metrics including accuracy, loss, top-5%/top-10% energy ratio, and effective rank for each split (ID, OOD-
      Medium, OOD-Hard).
 - `dynamics_{model}_{steps}steps.pdf` - 4-panel figure: (a) top-5% energy vs step, (b) top-10% energy vs step, (c) accuracy vs step, (d) effective rank vs step. Each
       panel shows all three splits.
