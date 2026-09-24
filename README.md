@@ -2,7 +2,7 @@
 
 **Accepted to NeurIPS 2026 (Poster).**
 
-This repository contains the code for [**Harder the Task, Sparser the Representation: Sparsity as a Learning Signature of Capability in LLMs**](https://openreview.net/forum?id=cXF3Nd4vQs).
+This repository contains the code for [**Farther the Shift, Sparser the Representation: Analyzing OOD Mechanisms in LLMs**](https://arxiv.org/abs/2603.03415).
 
 This repository investigates the relationship between **hidden state sparsity** and model behavior in Large Language Models (LLMs). We study how sparsity patterns correlate with task difficulty, reasoning depth, and out-of-distribution (OOD) generalization.
 
