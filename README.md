@@ -151,12 +151,14 @@ We measure hidden state sparsity using multiple metrics:
 If you find this work useful, please cite our paper:
 
 ```bibtex
-@inproceedings{jin2026harder,
-  title = {Harder the Task, Sparser the Representation: Sparsity as a Learning Signature of Capability in {LLMs}},
-  author = {Jin, Mingyu and Yin, Yutong and Niu, Jingcheng and Zeng, Qingcheng and Xu, Wujiang and Song, Xinyuan and Cheng, Wei and Du, Mengnan and Wang, Zhaoran and Chen, Tianlong and Metaxas, Dimitris N.},
-  booktitle = {Advances in Neural Information Processing Systems},
-  year = {2026},
-  url = {https://openreview.net/forum?id=cXF3Nd4vQs}
+@misc{jin2026farthershiftsparserrepresentation,
+      title={Farther the Shift, Sparser the Representation: Analyzing OOD Mechanisms in LLMs}, 
+      author={Mingyu Jin and Yutong Yin and Jingcheng Niu and Qingcheng Zeng and Wujiang Xu and Mengnan Du and Wei Cheng and Zhaoran Wang and Tianlong Chen and Dimitris N. Metaxas},
+      year={2026},
+      eprint={2603.03415},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2603.03415}, 
 }
 ```
 
