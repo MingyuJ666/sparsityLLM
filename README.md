@@ -1,5 +1,9 @@
 # Entrainment: Hidden State Sparsity Analysis for LLMs
 
+**Accepted to NeurIPS 2026 (Poster).**
+
+This repository contains the code for [**Harder the Task, Sparser the Representation: Sparsity as a Learning Signature of Capability in LLMs**](https://openreview.net/forum?id=cXF3Nd4vQs).
+
 This repository investigates the relationship between **hidden state sparsity** and model behavior in Large Language Models (LLMs). We study how sparsity patterns correlate with task difficulty, reasoning depth, and out-of-distribution (OOD) generalization.
 
 ## Overview
@@ -141,6 +145,20 @@ We measure hidden state sparsity using multiple metrics:
 | **Effective Rank** | $\exp(-\sum_i p_i \log p_i) / d$ | Dimensionality utilization |
 
 
+
+## Citation
+
+If you find this work useful, please cite our paper:
+
+```bibtex
+@inproceedings{jin2026harder,
+  title = {Harder the Task, Sparser the Representation: Sparsity as a Learning Signature of Capability in {LLMs}},
+  author = {Jin, Mingyu and Yin, Yutong and Niu, Jingcheng and Zeng, Qingcheng and Xu, Wujiang and Song, Xinyuan and Cheng, Wei and Du, Mengnan and Wang, Zhaoran and Chen, Tianlong and Metaxas, Dimitris N.},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year = {2026},
+  url = {https://openreview.net/forum?id=cXF3Nd4vQs}
+}
+```
 
 ## Contact
 
