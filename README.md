@@ -152,13 +152,11 @@ If you find this work useful, please cite our paper:
 
 ```bibtex
 @article{jin2026farthershiftsparserrepresentation,
-      title={Farther the Shift, Sparser the Representation: Analyzing OOD Mechanisms in LLMs}, 
-      author={Mingyu Jin and Yutong Yin and Jingcheng Niu and Qingcheng Zeng and Wujiang Xu and Mengnan Du and Wei Cheng and Zhaoran Wang and Tianlong Chen and Dimitris N. Metaxas},
-      year={2026},
-      eprint={2603.03415},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2603.03415}, 
+@article{jin2026farther,
+  title={Farther the Shift, Sparser the Representation: Analyzing OOD Mechanisms in LLMs},
+  author={Jin, Mingyu and Yin, Yutong and Niu, Jingcheng and Zeng, Qingcheng and Xu, Wujiang and Du, Mengnan and Cheng, Wei and Wang, Zhaoran and Chen, Tianlong and Metaxas, Dimitris N},
+  journal={arXiv preprint arXiv:2603.03415},
+  year={2026}
 }
 ```
 
