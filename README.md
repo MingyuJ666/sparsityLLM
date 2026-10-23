@@ -151,7 +151,6 @@ We measure hidden state sparsity using multiple metrics:
 If you find this work useful, please cite our paper:
 
 ```bibtex
-@article{jin2026farthershiftsparserrepresentation,
 @article{jin2026farther,
   title={Farther the Shift, Sparser the Representation: Analyzing OOD Mechanisms in LLMs},
   author={Jin, Mingyu and Yin, Yutong and Niu, Jingcheng and Zeng, Qingcheng and Xu, Wujiang and Du, Mengnan and Cheng, Wei and Wang, Zhaoran and Chen, Tianlong and Metaxas, Dimitris N},
